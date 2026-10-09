@@ -1,9 +1,9 @@
 # StockFlow - Gestão Inteligente de Estoque (SaaS)
 
 # Projeto Acadêmico da Faculdade SENAC DF 
-# Curso: Análise e Desenvolvimento de Sistemas (ADS-2A) | Semestre: 2º
-# Disciplina: Laboratório de Inovação II
-# Alunos: Bruno Sampaio, Daniel Oliveira, Elinaldo, Felipe Marra, Josafa Felinto e Raphael Feitoza.
+- Curso: Análise e Desenvolvimento de Sistemas (ADS-2A) | Semestre: 2º
+- Disciplina: Laboratório de Inovação II
+- Alunos: Bruno Sampaio, Daniel Oliveira, Elinaldo, Felipe Marra, Josafa Felinto e Raphael Feitoza.
 
 O **StockFlow** é um sistema SaaS de gestão de estoques voltado para pequenas e médias empresas (PMEs). Ele possui uma arquitetura Multi-Tenant garantindo que todas as informações de estoque, produtos e operações fiquem totalmente isoladas por empresa.
 
