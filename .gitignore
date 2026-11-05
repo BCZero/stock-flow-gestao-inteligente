@@ -22,3 +22,7 @@ frontend/.vite/
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+# anotações locais de estudo
+anotacoes.md
+plano_estudos_fase5.md

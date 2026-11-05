@@ -113,6 +113,23 @@ cmd /c "npm run dev"
 
 ---
 
+### Parte 3: Gerenciamento e Recuperação de Usuários (CLI)
+
+O projeto conta com um script utilitário interativo (`gerenciar_usuario.py`) para administração e recuperação de contas locais em ambiente de desenvolvimento, dispensando consultas manuais no banco de dados:
+
+- **Listagem de Usuários**: Exibe todos os usuários cadastrados, seus IDs, e-mails completos, empresa vinculada e status do 2FA.
+- **Redefinição de Senha**: Altera a senha de qualquer usuário através da busca por ID ou e-mail.
+- **Desativação de Emergência do 2FA**: Caso o usuário tenha perdido o aplicativo autenticador (Google Authenticator / Authy), o script permite desativar o 2FA para restabelecer o login imediatamente.
+- **Criação de Novos Usuários**: Permite cadastrar novos administradores vinculados a empresas existentes ou criar uma nova empresa diretamente pelo terminal.
+
+**Como executar:**
+```powershell
+cd backend
+venv\Scripts\python.exe gerenciar_usuario.py
+```
+
+---
+
 ## 🗺️ Roadmap e Status do Projeto
 
 Este projeto está **Em Andamento**, sendo desenvolvido com base em um plano de trabalho rigoroso estruturado em 6 Fases para garantir a entrega de um MVP de altíssima estabilidade, escalabilidade e valor para o cliente.
