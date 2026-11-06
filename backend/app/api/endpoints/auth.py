@@ -9,6 +9,8 @@ from app.schemas import Token, Setup2FA, Verify2FA, UsuarioResponse
 import pyotp
 import urllib.parse
 
+from app.services.auditoria import auditar
+
 router = APIRouter()
 
 @router.post("/login", response_model=Token)
@@ -29,6 +31,8 @@ def login_access_token(
             raise HTTPException(status_code=400, detail="Código 2FA inválido")
             
     access_token = create_access_token(subject=user.id)
+    auditar(db, user, "LOGIN")
+    db.commit()
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/2fa/setup", response_model=Setup2FA)
@@ -41,6 +45,7 @@ def setup_2fa(
         
     secret = pyotp.random_base32()
     current_user.totp_secret = secret
+    auditar(db, current_user, "INICIAR_CONFIGURACAO_2FA")
     db.commit()
     
     issuer_name = urllib.parse.quote("StockFlow")
@@ -66,6 +71,7 @@ def verify_2fa(
         raise HTTPException(status_code=400, detail="Código inválido")
         
     current_user.is_2fa_enabled = True
+    auditar(db, current_user, "HABILITAR_2FA")
     db.commit()
     db.refresh(current_user)
     return current_user

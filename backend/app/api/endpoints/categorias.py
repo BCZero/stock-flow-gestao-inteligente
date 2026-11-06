@@ -5,6 +5,8 @@ from app.api import deps
 from app.db.models import Categoria, Usuario
 from app.schemas.cadastro import CategoriaCreate, CategoriaResponse
 
+from app.services.auditoria import auditar
+
 router = APIRouter()
 
 @router.get("/", response_model=List[CategoriaResponse])
@@ -26,6 +28,8 @@ def criar_categoria(
         id_empresa=current_user.id_empresa
     )
     db.add(nova_categoria)
+    db.flush()
+    auditar(db, current_user, "CRIAR_CATEGORIA", id_registro=nova_categoria.id)
     db.commit()
     db.refresh(nova_categoria)
     return nova_categoria
@@ -43,5 +47,6 @@ def excluir_categoria(
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     db.delete(categoria)
+    auditar(db, current_user, "EXCLUIR_CATEGORIA", id_registro=categoria.id)
     db.commit()
     return {"ok": True}

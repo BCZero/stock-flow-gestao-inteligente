@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 from typing import List
 from app.api import deps
 from app.db.models import Pessoa, Usuario
+from app.db.session import codigo_postgres
 from app.schemas.cadastro import PessoaCreate, PessoaResponse
+
+from app.services.auditoria import auditar
 
 router = APIRouter()
 
@@ -27,6 +31,8 @@ def criar_pessoa(
         id_empresa=current_user.id_empresa
     )
     db.add(nova_pessoa)
+    db.flush()
+    auditar(db, current_user, "CRIAR_PESSOA", id_registro=nova_pessoa.id)
     db.commit()
     db.refresh(nova_pessoa)
     return nova_pessoa
@@ -44,5 +50,12 @@ def excluir_pessoa(
     if not pessoa:
         raise HTTPException(status_code=404, detail="Pessoa não encontrada")
     db.delete(pessoa)
-    db.commit()
+    try:
+        auditar(db, current_user, "EXCLUIR_PESSOA", id_registro=pessoa.id)
+        db.commit()
+    except DBAPIError as erro:
+        if codigo_postgres(erro) != "23503":
+            raise
+        db.rollback()
+        raise HTTPException(409, "Cadastro vinculado a um saldo ou documento de estoque") from erro
     return {"ok": True}

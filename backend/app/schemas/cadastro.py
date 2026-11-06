@@ -57,6 +57,7 @@ class ProdutoResponse(ProdutoBase):
     id: int
     id_empresa: int
     id_categoria: int
+    ativo: bool
     categoria: Optional[CategoriaResponse] = None
     class Config:
         from_attributes = True

@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 from typing import List
 from app.api import deps
 from app.db.models import LocalEstoque, Usuario
+from app.db.session import codigo_postgres
 from app.schemas.cadastro import LocalEstoqueCreate, LocalEstoqueResponse
+
+from app.services.auditoria import auditar
 
 router = APIRouter()
 
@@ -25,6 +29,8 @@ def criar_local(
         id_empresa=current_user.id_empresa
     )
     db.add(novo_local)
+    db.flush()
+    auditar(db, current_user, "CRIAR_LOCAL_ESTOQUE", id_registro=novo_local.id)
     db.commit()
     db.refresh(novo_local)
     return novo_local
@@ -42,5 +48,12 @@ def excluir_local(
     if not local:
         raise HTTPException(status_code=404, detail="Local não encontrado")
     db.delete(local)
-    db.commit()
+    try:
+        auditar(db, current_user, "EXCLUIR_LOCAL_ESTOQUE", id_registro=local.id)
+        db.commit()
+    except DBAPIError as erro:
+        if codigo_postgres(erro) != "23503":
+            raise
+        db.rollback()
+        raise HTTPException(409, "Cadastro vinculado a um saldo ou documento de estoque") from erro
     return {"ok": True}

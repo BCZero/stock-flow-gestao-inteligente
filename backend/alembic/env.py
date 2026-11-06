@@ -1,9 +1,11 @@
 from logging.config import fileConfig
+from pathlib import Path
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from dotenv import dotenv_values
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -12,7 +14,7 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 import sys
 import os
@@ -33,6 +35,15 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+def database_url() -> str:
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    return (
+        os.environ.get("DATABASE_URL")
+        or dotenv_values(env_file, encoding="utf-8").get("DATABASE_URL")
+        or config.get_main_option("sqlalchemy.url")
+    )
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -45,7 +56,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -64,19 +75,26 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    connection = config.attributes.get("connection")
+    if connection is not None:
+        migrate(connection)
+        return
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        url=database_url(),
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        migrate(connection)
 
-        with context.begin_transaction():
-            context.run_migrations()
+
+def migrate(connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata)
+    with context.begin_transaction():
+        context.run_migrations()
 
 
 if context.is_offline_mode():

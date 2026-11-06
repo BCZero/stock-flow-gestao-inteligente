@@ -11,3 +11,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+def codigo_postgres(erro):
+    """Lê o SQLSTATE mesmo quando o pg8000 classifica uma restrição como ProgrammingError."""
+    original = erro.orig
+    if original.args and isinstance(original.args[0], dict):
+        return original.args[0].get("C")
+    return getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)

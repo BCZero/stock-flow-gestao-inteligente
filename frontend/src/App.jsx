@@ -7,14 +7,9 @@ import Categorias from './pages/Categorias';
 import Produtos from './pages/Produtos';
 import Locais from './pages/Locais';
 import Pessoas from './pages/Pessoas';
-
-// Painel Inicial Simples
-const Dashboard = () => (
-  <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm text-center">
-    <h2 className="text-2xl font-bold text-gray-800 mb-2">Bem-vindo ao StockFlow!</h2>
-    <p className="text-gray-500">Utilize o menu lateral para gerenciar o seu estoque.</p>
-  </div>
-);
+import Estoque from './pages/Estoque';
+import Transacoes from './pages/Transacoes';
+import Painel from './pages/Painel';
 
 function App() {
   return (
@@ -26,11 +21,14 @@ function App() {
         
         {/* Rotas Protegidas com Layout (Sidebar) */}
         <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Painel />} />
           <Route path="/categorias" element={<Categorias />} />
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/locais" element={<Locais />} />
           <Route path="/pessoas" element={<Pessoas />} />
+          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/compras" element={<Transacoes key="compras" tipo="compras" />} />
+          <Route path="/vendas" element={<Transacoes key="vendas" tipo="vendas" />} />
         </Route>
       </Routes>
     </BrowserRouter>

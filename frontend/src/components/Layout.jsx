@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Tags, MapPin, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, Tags, MapPin, Users, LogOut, Boxes, ShoppingCart, Receipt } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, path }) => {
   const location = useLocation();
@@ -9,7 +9,7 @@ const SidebarItem = ({ icon: Icon, label, path }) => {
   return (
     <Link
       to={path}
-      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+      className={`flex items-center space-x-3 whitespace-nowrap px-4 py-3 rounded-lg transition-colors ${
         isActive 
           ? 'bg-blue-50 text-blue-700 font-medium' 
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -28,19 +28,22 @@ const Layout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-dvh flex-col bg-gray-50 md:flex-row">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <aside className="flex w-full shrink-0 flex-col border-b border-gray-200 bg-white md:w-64 md:border-r">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900">StockFlow</h1>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <div className="flex flex-1 gap-1 overflow-x-auto px-3 py-2 md:block md:space-y-1 md:overflow-y-auto md:py-4">
           <SidebarItem icon={LayoutDashboard} label="Painel" path="/dashboard" />
           <SidebarItem icon={Tags} label="Categorias" path="/categorias" />
           <SidebarItem icon={Package} label="Produtos" path="/produtos" />
           <SidebarItem icon={MapPin} label="Locais de Estoque" path="/locais" />
           <SidebarItem icon={Users} label="Pessoas" path="/pessoas" />
+          <SidebarItem icon={Boxes} label="Estoque" path="/estoque" />
+          <SidebarItem icon={ShoppingCart} label="Compras" path="/compras" />
+          <SidebarItem icon={Receipt} label="Vendas" path="/vendas" />
         </div>
 
         <div className="p-4 border-t border-gray-200">
@@ -59,7 +62,7 @@ const Layout = () => {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center px-8 shadow-sm">
           <h2 className="text-lg font-medium text-gray-800">Ambiente Administrativo</h2>
         </header>
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           <Outlet />
         </div>
       </main>

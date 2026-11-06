@@ -5,6 +5,8 @@ from app.db.models import Empresa, Usuario, PerfilEnum
 from app.schemas import RegistroInicial, EmpresaResponse
 from app.core.security import get_password_hash
 
+from app.services.auditoria import auditar
+
 router = APIRouter()
 
 @router.post("/", response_model=EmpresaResponse)
@@ -39,6 +41,8 @@ def registrar_empresa_usuario(
         perfil=PerfilEnum.ADMIN
     )
     db.add(novo_usuario)
+    db.flush()
+    auditar(db, novo_usuario, "REGISTRAR_EMPRESA", id_registro=nova_empresa.id)
     db.commit()
 
     return nova_empresa
