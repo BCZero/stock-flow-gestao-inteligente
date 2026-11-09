@@ -243,6 +243,7 @@ O projeto conta com um script utilitário interativo (`gerenciar_usuario.py`) pa
 - **Listagem de Usuários**: Exibe todos os usuários cadastrados, seus IDs, e-mails completos, empresa vinculada e status do 2FA.
 - **Redefinição de Senha**: Altera a senha de qualquer usuário através da busca por ID ou e-mail.
 - **Desativação de Emergência do 2FA**: Caso o usuário tenha perdido o aplicativo autenticador (Google Authenticator / Authy), o script permite desativar o 2FA para restabelecer o login imediatamente.
+- **Teste de Credenciais**: Permite simular e validar e-mail, senha e status do 2FA diretamente no terminal antes de logar.
 - **Criação de Novos Usuários**: Permite cadastrar novos administradores vinculados a empresas existentes ou criar uma nova empresa diretamente pelo terminal.
 
 **Como executar:**

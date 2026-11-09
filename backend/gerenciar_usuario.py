@@ -2,7 +2,7 @@ import sys
 from sqlalchemy import func
 from app.db.session import SessionLocal
 from app.db.models import Usuario, Empresa, PerfilEnum
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 
 def listar_usuarios(db):
     usuarios = db.query(Usuario).all()
@@ -80,6 +80,64 @@ def redefinir_senha(db):
     print(f"   E-mail: {usuario.email}")
     print(f"   Senha:  {nova_senha}\n")
 
+def desativar_2fa(db):
+    print("\n--- DESATIVAR 2FA (AUTENTICADOR) ---")
+    usuarios = listar_usuarios(db)
+    if not usuarios:
+        return
+
+    if len(usuarios) == 1:
+        entrada = input(f"Digite o ID ou e-mail (ou aperte Enter para selecionar '{usuarios[0].nome}'): ").strip()
+        usuario = usuarios[0] if not entrada else buscar_usuario(db, entrada)
+    else:
+        entrada = input("Digite o ID (ex: 1) ou o e-mail do usuario: ").strip()
+        usuario = buscar_usuario(db, entrada)
+
+    if not usuario:
+        print(f"\n[X] Usuario '{entrada}' nao encontrado.")
+        return
+
+    usuario.is_2fa_enabled = False
+    usuario.totp_secret = None
+    db.commit()
+    print(f"\n[OK] 2FA do usuario '{usuario.nome}' foi DESATIVADO com sucesso!")
+    print("Agora você pode logar apenas com o e-mail e a senha, sem código do celular.\n")
+
+def testar_login(db):
+    print("\n--- TESTAR CREDENCIAIS DE LOGIN ---")
+    email_ou_nome = input("Digite o e-mail ou nome que você está usando na tela: ").strip()
+    user = db.query(Usuario).filter(
+        (func.lower(Usuario.email) == email_ou_nome.lower()) |
+        (func.lower(Usuario.nome) == email_ou_nome.lower())
+    ).first()
+    
+    if not user:
+        print(f"\n[X] NENHUM usuário encontrado com '{email_ou_nome}'.")
+        print("    Dica: Use a opção 1 do menu para ver os e-mails exatos cadastrados.")
+        return
+        
+    print(f"\n[OK] Usuário encontrado: {user.nome} (E-mail: {user.email})")
+    
+    senha = input("Digite a senha que você está tentando usar no login: ").strip()
+    if verify_password(senha, user.senha_hash):
+        print("[OK] Senha CORRETA! A senha bate perfeitamente com o banco de dados.")
+    else:
+        print("[X] Senha INCORRETA! Essa senha não confere com o que está no banco.")
+        print("    -> Use a opção 2 do menu para definir uma nova senha.")
+        return
+        
+    if user.is_2fa_enabled:
+        print("\n[!] ATENÇÃO: O 2FA deste usuário está ATIVADO!")
+        print("    Por isso a tela fica pedindo o código de 6 dígitos do Google Authenticator.")
+        desat = input("    Deseja desativar o 2FA agora para conseguir logar direto sem celular? (s/n): ").strip().lower()
+        if desat in ['s', 'sim', 'y', 'yes', '']:
+            user.is_2fa_enabled = False
+            user.totp_secret = None
+            db.commit()
+            print("[OK] 2FA DESATIVADO! Agora você pode logar direto com sua senha.")
+    else:
+        print("[OK] 2FA está desativado! O login direto está pronto para funcionar.")
+
 def criar_usuario(db):
     print("\n--- CRIAR NOVO USUÁRIO ---")
     empresas = db.query(Empresa).all()
@@ -148,18 +206,24 @@ def main():
     while True:
         print("\n=== GERENCIADOR DE USUARIOS - STOCKFLOW ===")
         print("1. Listar todos os usuarios cadastrados")
-        print("2. Redefinir senha de um usuario existente (e resetar 2FA se necessario)")
-        print("3. Criar um novo usuario")
-        print("4. Sair")
-        opcao = input("Escolha uma opcao (1-4): ").strip()
+        print("2. Redefinir senha de um usuario")
+        print("3. Desativar 2FA (autenticador do celular)")
+        print("4. Testar login (verificar e-mail, senha e 2FA)")
+        print("5. Criar um novo usuario")
+        print("6. Sair")
+        opcao = input("Escolha uma opcao (1-6): ").strip()
 
         if opcao == "1":
             listar_usuarios(db)
         elif opcao == "2":
             redefinir_senha(db)
         elif opcao == "3":
-            criar_usuario(db)
+            desativar_2fa(db)
         elif opcao == "4":
+            testar_login(db)
+        elif opcao == "5":
+            criar_usuario(db)
+        elif opcao == "6":
             print("Encerrando.")
             break
         else:

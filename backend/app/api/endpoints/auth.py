@@ -1,6 +1,7 @@
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.core.security import verify_password, create_access_token
@@ -8,8 +9,11 @@ from app.db.models import Usuario
 from app.schemas import Token, Setup2FA, Verify2FA, UsuarioResponse
 import pyotp
 import urllib.parse
+import logging
 
 from app.services.auditoria import auditar
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -19,7 +23,13 @@ def login_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     codigo_2fa: Optional[str] = Form(None)
 ) -> Any:
-    user = db.query(Usuario).filter(Usuario.email == form_data.username).first()
+    identificador = form_data.username.strip()
+    # Permite login por e-mail (case-insensitive) ou pelo nome do usuário
+    user = db.query(Usuario).filter(
+        (func.lower(Usuario.email) == identificador.lower()) |
+        (func.lower(Usuario.nome) == identificador.lower())
+    ).first()
+
     if not user or not verify_password(form_data.password, user.senha_hash):
         raise HTTPException(status_code=400, detail="E-mail ou senha incorretos")
     
@@ -31,8 +41,13 @@ def login_access_token(
             raise HTTPException(status_code=400, detail="Código 2FA inválido")
             
     access_token = create_access_token(subject=user.id)
-    auditar(db, user, "LOGIN")
-    db.commit()
+    try:
+        auditar(db, user, "LOGIN")
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.warning(f"Falha ao registrar auditoria de login: {e}")
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/2fa/setup", response_model=Setup2FA)
