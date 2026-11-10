@@ -22,7 +22,7 @@ Este documento reflete a entrega de estoque, compras, vendas, indicadores, alert
 - **Segurança Adicional (2FA)**: Suporte para duplo fator de autenticação integrado com Google Authenticator/Authy através da biblioteca `pyotp`.
 
 ### Frontend
-- **React 18** construído via **Vite** para inicialização super rápida.
+- **React 19** construído via **Vite** para inicialização super rápida.
 - **TailwindCSS v4**: Integração oficial otimizada com `@tailwindcss/vite` para estilização moderna e responsiva.
 - **React Router DOM**: Gerenciamento completo do roteamento com rotas públicas (Login/Registro) e rotas protegidas por token.
 - **Lucide React**: Biblioteca base para a iconografia das interfaces.
@@ -267,4 +267,6 @@ O fluxo de estoque, compras e vendas da **Fase 4** está disponível. A definiç
 - [x] **Fase 3: Cadastros Essenciais (CRUDs)** (Gestão de Produtos, Categorias, Locais e Pessoas/Fornecedores).
 - [x] **Fase 4: Gestão de Movimentações e Transações** (Compras, vendas, ajustes, saldos e histórico).
 - [x] **Fase 5: Inteligência, Alertas e Auditoria** (Painel analítico, alertas automáticos, notificações, extrato, estoque estimado e resumo opcional por LLM).
-- [ ] **Fase 6: Testes e Validação de Estresse** (Testes de concorrência de vendas, prevenção a saldos negativos simultâneos, auditoria do isolamento Multi-Tenant e simulação de big data).
+- [~] **Fase 6: Testes e Validação de Estresse** — *parcial*. Já cobertos por testes automatizados (10 testes, aprovados em 09/11/2026): concorrência de vendas, prevenção a saldo negativo, isolamento Multi-Tenant e resiliência do resumo por LLM. Pendentes: teste de volume (*big data*), revisão de responsividade e testes do frontend.
+
+> Documentação técnica completa, histórico de evolução, limitações conhecidas e resultados de testes: [`DOCUMENTACAO.md`](DOCUMENTACAO.md). Relatório de evolução para entrega: [`docs/RELATORIO_EVOLUCAO_STOCKFLOW.pdf`](docs/RELATORIO_EVOLUCAO_STOCKFLOW.pdf).

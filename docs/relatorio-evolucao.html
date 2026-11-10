@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>StockFlow — Relatório de Evolução do Projeto</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm;
+    @bottom-left   { content: "StockFlow — Relatório de Evolução"; font: 8pt 'Segoe UI', Arial, sans-serif; color: #6b7280; }
+    @bottom-right  { content: "Página " counter(page) " de " counter(pages); font: 8pt 'Segoe UI', Arial, sans-serif; color: #6b7280; } }
+  @page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  :root { --navy:#14365d; --blue:#1d4ed8; --soft:#eef3fb; --line:#d6deea; --ink:#1f2937; --mute:#5b6676;
+          --ok:#15803d; --okbg:#e8f5ec; --warn:#b45309; --warnbg:#fdf3e1; --bad:#b91c1c; --badbg:#fbeaea; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font: 10.3pt/1.5 'Segoe UI', Calibri, Arial, sans-serif; color: var(--ink); margin: 0; }
+
+  /* Capa */
+  .capa { height: 297mm; padding: 26mm 22mm 20mm; background: linear-gradient(160deg, #0f2a4a 0%, #14365d 55%, #1d4ed8 140%);
+          color: #fff; display: flex; flex-direction: column; page-break-after: always; break-after: page; }
+  .capa .inst { font-size: 10.5pt; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  .capa .marca { margin-top: 38mm; }
+  .capa h1 { font-size: 40pt; line-height: 1.05; margin: 0 0 6mm; letter-spacing: -.02em; }
+  .capa .sub { font-size: 15pt; font-weight: 300; max-width: 135mm; opacity: .95; }
+  .capa .barra { width: 28mm; height: 3px; background: #60a5fa; margin: 10mm 0; }
+  .capa dl { margin: auto 0 0; display: grid; grid-template-columns: 34mm 1fr; gap: 2.4mm 4mm; font-size: 10.2pt; }
+  .capa dt { opacity: .7; } .capa dd { margin: 0; }
+
+  /* Tipografia */
+  h2 { font-size: 16pt; color: var(--navy); margin: 9mm 0 3mm; padding-bottom: 2mm; border-bottom: 2px solid var(--blue); break-after: avoid; }
+  h2 .n { color: var(--blue); margin-right: 2mm; }
+  h3 { font-size: 11.5pt; color: var(--navy); margin: 5.5mm 0 1.5mm; break-after: avoid; }
+  p { margin: 0 0 2.6mm; text-align: justify; hyphens: auto; }
+  ul { margin: 0 0 3mm; padding-left: 5mm; } li { margin-bottom: 1mm; }
+  code { font: 9pt Consolas, 'Courier New', monospace; background: #f1f5f9; padding: .3mm 1.2mm; border-radius: 2px; color: #0f172a; }
+  .mute { color: var(--mute); } .small { font-size: 8.8pt; }
+
+  /* Cartões de números */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 4mm 0 5mm; }
+  .kpi { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 3.2mm 3mm; text-align: center; break-inside: avoid; }
+  .kpi b { display: block; font-size: 20pt; color: var(--blue); line-height: 1.1; }
+  .kpi span { font-size: 8.4pt; color: var(--mute); }
+
+  /* Tabelas */
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; }
+  th { background: var(--navy); color: #fff; text-align: left; padding: 1.9mm 2.4mm; font-weight: 600; }
+  td { padding: 1.8mm 2.4mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr { break-inside: avoid; } tbody tr:nth-child(even) td { background: #f8fafc; }
+  .tag { display: inline-block; padding: .2mm 2mm; border-radius: 99px; font-size: 8pt; font-weight: 600; white-space: nowrap; }
+  .t-ok { background: var(--okbg); color: var(--ok); } .t-par { background: var(--warnbg); color: var(--warn); } .t-no { background: var(--badbg); color: var(--bad); }
+
+  /* Linha do tempo */
+  .tl { border-left: 2px solid var(--line); margin: 3mm 0 4mm 3mm; padding-left: 6mm; }
+  .tl .it { position: relative; margin-bottom: 2.6mm; break-inside: avoid; }
+  .tl .it p { margin-bottom: 0; }
+  .tl .it::before { content: ""; position: absolute; left: -8.1mm; top: 1.4mm; width: 3.2mm; height: 3.2mm; border-radius: 50%; background: var(--blue); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--blue); }
+  .tl .d { font-weight: 700; color: var(--navy); font-size: 9.6pt; }
+  .tl .c { font: 8.2pt Consolas, monospace; color: var(--mute); margin-left: 2mm; }
+
+  /* Destaques */
+  .nota { border-left: 4px solid var(--blue); background: var(--soft); padding: 2.6mm 4mm; margin: 3mm 0 4mm; border-radius: 0 5px 5px 0; break-inside: avoid; }
+  .nota.warn { border-color: #d97706; background: var(--warnbg); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin: 2mm 0 4mm; }
+  .card { border: 1px solid var(--line); border-radius: 6px; padding: 3mm 3.6mm; break-inside: avoid; }
+  .card h4 { margin: 0 0 1.2mm; font-size: 10pt; color: var(--blue); }
+  .card p { font-size: 9.2pt; margin: 0; text-align: left; }
+  figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
+  figcaption { font-size: 8.4pt; color: var(--mute); margin-top: 1mm; }
+  .quebra { break-before: page; }
+</style>
+</head>
+<body>
+
+<!-- ============================ CAPA ============================ -->
+<section class="capa">
+  <div class="inst">Faculdade SENAC DF · Unidade Tecnologia · Brasília</div>
+  <div class="marca">
+    <h1>StockFlow</h1>
+    <div class="sub">Relatório de evolução do projeto: da concepção ao estado atual</div>
+    <div class="barra"></div>
+    <div class="sub" style="font-size:11.5pt">Plataforma SaaS multiempresa de gestão inteligente de estoque para pequenas e médias empresas</div>
+  </div>
+  <dl>
+    <dt>Curso</dt><dd>Análise e Desenvolvimento de Sistemas (ADS-2A) · 2º semestre</dd>
+    <dt>Disciplina</dt><dd>Laboratório de Inovação II</dd>
+    <dt>Equipe</dt><dd>Bruno Sampaio · Daniel Oliveira · Elinaldo · Felipe Marra · Josafa Felinto · Raphael Feitoza</dd>
+    <dt>Repositório</dt><dd>github.com/BCZero/stock-flow-gestao-inteligente</dd>
+    <dt>Posição</dt><dd>Branch <code style="background:rgba(255,255,255,.15);color:#fff">main</code>, commit <code style="background:rgba(255,255,255,.15);color:#fff">0fee0cd</code> · Fases 1–5 entregues, Fase 6 parcial</dd>
+    <dt>Data</dt><dd>09 de novembro de 2026</dd>
+  </dl>
+</section>
+
+<!-- ============================ 1 ============================ -->
+<h2 style="margin-top:0"><span class="n">1.</span>Resumo</h2>
+<p>O <b>StockFlow</b> é um sistema web de gestão de estoque voltado a pequenos varejistas. Cada empresa-cliente opera em um ambiente logicamente isolado (arquitetura <i>multi-tenant</i>) e conta com um motor transacional que impede saldo negativo mesmo com vendas simultâneas, um histórico imutável de movimentações, uma trilha de auditoria e alertas automáticos de estoque crítico, produto parado, atraso de fornecedor e variação de vendas.</p>
+<p>Este relatório descreve <b>como o projeto evoluiu</b> desde o primeiro commit (08/10/2026) até o estado atual, o que foi planejado e o que foi efetivamente entregue, as principais decisões de engenharia, <b>as verificações executadas</b> e as limitações que ainda existem. Todas as afirmações foram conferidas contra o código-fonte, o histórico do Git e uma execução da suíte de testes em 09/11/2026.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>5 + ½</b><span>fases entregues<br>(Fase 6 parcial)</span></div>
+  <div class="kpi"><b>17</b><span>tabelas, em<br>3 migrações</span></div>
+  <div class="kpi"><b>34</b><span>rotas da API REST</span></div>
+  <div class="kpi"><b>10 / 10</b><span>testes automatizados<br>aprovados</span></div>
+  <div class="kpi"><b>10</b><span>telas no frontend</span></div>
+  <div class="kpi"><b>≈ 4,9 mil</b><span>linhas de código<br>(back 3.093 · front 1.779)</span></div>
+  <div class="kpi"><b>4</b><span>perfis de acesso<br>(RBAC)</span></div>
+  <div class="kpi"><b>5</b><span>tipos de alerta<br>automático</span></div>
+</div>
+
+<!-- ============================ 2 ============================ -->
+<h2><span class="n">2.</span>Contexto e problema</h2>
+<p>O projeto nasceu das oficinas de <b>Laboratório de Inovação II</b>, cujo desafio era conceber, modelar e implementar uma solução de software completa, integrando modelagem relacional com integridade rigorosa, controle de acesso por perfis, tecnologias web modernas e entrega incremental em seis fases. O ponto de partida foi um <i>Projeto Lógico e Físico de Banco de Dados</i>, um Plano de Negócios e um Project Model Canvas.</p>
+<p>O problema atacado é recorrente no pequeno varejo: controles em planilhas, sem rastreabilidade (“quem alterou este saldo?”), vendas que superam o estoque físico, capital imobilizado em produtos parados e reação tardia a mudanças de demanda e a atrasos de fornecedores.</p>
+
+<!-- ============================ 3 ============================ -->
+<h2 class="quebra"><span class="n">3.</span>Linha do tempo da evolução</h2>
+<div class="tl">
+  <div class="it"><span class="d">08/10/2026</span><span class="c">2884af6 · 6afe185 · 349b831 · c52b5d7</span>
+    <p><b>Fundação (Fases 1 a 3).</b> Monorepo (<code>backend/</code> e <code>frontend/</code>), PostgreSQL 16 em Docker, FastAPI com Alembic (migração inicial de 9 tabelas), cadastro atômico de empresa + administrador, login JWT com 2FA (TOTP), CRUDs de categorias, produtos, locais e pessoas e interface React com rotas protegidas. Um commit posterior tirou do versionamento o ambiente virtual enviado por engano e criou o <code>.gitignore</code>.</p></div>
+  <div class="it"><span class="d">05/11/2026</span><span class="c">e970e4f</span>
+    <p><b>Suporte operacional.</b> Utilitário de linha de comando <code>gerenciar_usuario.py</code> (listar usuários, redefinir senha, desativar 2FA de emergência), para recuperar contas durante o desenvolvimento e as apresentações.</p></div>
+  <div class="it"><span class="d">06/11/2026</span><span class="c">14c2957 · 38 arquivos · +3.458 linhas</span>
+    <p><b>O coração do sistema (Fases 4 e 5).</b> Motor transacional de estoque (compras com recebimento parcial, vendas com baixa atômica, ajustes com motivo), ledger e auditoria imutáveis, painel analítico, monitor de alertas, notificações, resumo opcional por LLM, carga de demonstração e a primeira suíte de testes — o maior salto técnico do projeto.</p></div>
+  <div class="it"><span class="d">09/11/2026</span><span class="c">2297919 · 0fee0cd</span>
+    <p><b>Estabilização e documentação.</b> Login por nome ou e-mail, falha de auditoria deixando de derrubar o login, diagnóstico no CLI, primeira documentação completa — e, nesta data, a verificação independente descrita na seção 7.</p></div>
+</div>
+
+<h3>3.1. Planejado × entregue</h3>
+<table>
+  <thead><tr><th style="width:27%">Fase (plano de trabalho)</th><th>Entrega verificada no código</th><th style="width:13%">Situação</th></tr></thead>
+  <tbody>
+    <tr><td><b>1.</b> Ambiente e banco</td><td>Docker Compose com PostgreSQL 16, SQLAlchemy, Alembic, React + Vite + Axios com interceptor de token.</td><td><span class="tag t-ok">Concluída</span></td></tr>
+    <tr><td><b>2.</b> Autenticação, perfis e 2FA</td><td>Registro de empresa + admin, login JWT, 2FA TOTP com QR Code, quatro perfis (ADMIN, GESTOR, OPERADOR, ANALISTA).</td><td><span class="tag t-ok">Concluída</span></td></tr>
+    <tr><td><b>3.</b> Cadastros essenciais</td><td>Categorias, produtos (SKU único por empresa), locais e pessoas (clientes/fornecedores); isolamento por empresa. <i>Validação de CPF/CNPJ ficou pendente.</i></td><td><span class="tag t-ok">Concluída</span></td></tr>
+    <tr><td><b>4.</b> Estoque e transações</td><td>Compras (rascunho → confirmada → parcial → recebida), vendas, ajustes, saldos por local, histórico, bloqueio de saldo negativo e idempotência.</td><td><span class="tag t-ok">Concluída</span></td></tr>
+    <tr><td><b>5.</b> Inteligência, alertas e auditoria</td><td>Painel de 30 dias, 5 tipos de alerta, notificações, fluxo de tratamento, regras por empresa, trilha de auditoria, resumo por LLM.</td><td><span class="tag t-ok">Concluída</span></td></tr>
+    <tr><td><b>6.</b> Testes e validação</td><td>Concorrência, isolamento e <i>fallback</i> de LLM cobertos por testes; dados simulados por <code>popular_demo.py</code>. <i>Faltam teste de volume, revisão de responsividade e testes do frontend.</i></td><td><span class="tag t-par">Parcial</span></td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 4 ============================ -->
+<h2 class="quebra"><span class="n">4.</span>Arquitetura</h2>
+<p>O sistema segue uma arquitetura em três camadas: uma aplicação de página única (SPA) em React consome uma API REST em FastAPI, que persiste em PostgreSQL. Um monitor assíncrono, executado dentro do próprio processo da API, gera os alertas periodicamente; um provedor de LLM é opcional.</p>
+
+<figure>
+<svg viewBox="0 0 700 330" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
+  </defs>
+  <!-- Frontend -->
+  <rect x="10" y="40" width="150" height="250" rx="10" fill="#eef3fb" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="85" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="#14365d">Frontend (SPA)</text>
+  <g font-size="11" fill="#1f2937" text-anchor="middle">
+    <rect x="24" y="76" width="122" height="34" rx="6" fill="#fff" stroke="#9db4de"/><text x="85" y="97">React 19 + Vite</text>
+    <rect x="24" y="120" width="122" height="34" rx="6" fill="#fff" stroke="#9db4de"/><text x="85" y="141">React Router</text>
+    <rect x="24" y="164" width="122" height="34" rx="6" fill="#fff" stroke="#9db4de"/><text x="85" y="185">Axios + Bearer JWT</text>
+    <rect x="24" y="208" width="122" height="34" rx="6" fill="#fff" stroke="#9db4de"/><text x="85" y="229">Tailwind CSS 4</text>
+    <text x="85" y="268" font-size="10" fill="#5b6676">10 telas · porta 5173</text>
+  </g>
+  <!-- Backend -->
+  <rect x="240" y="10" width="230" height="310" rx="10" fill="#f6f9ff" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="355" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#14365d">Backend (FastAPI · /api)</text>
+  <g font-size="11" fill="#1f2937" text-anchor="middle">
+    <rect x="256" y="46" width="198" height="40" rx="6" fill="#fff" stroke="#9db4de"/><text x="355" y="63">Autenticação</text><text x="355" y="77" font-size="9.5" fill="#5b6676">bcrypt · JWT · 2FA TOTP</text>
+    <rect x="256" y="94" width="198" height="40" rx="6" fill="#fff" stroke="#9db4de"/><text x="355" y="111">Cadastros</text><text x="355" y="125" font-size="9.5" fill="#5b6676">categorias · produtos · locais · pessoas</text>
+    <rect x="256" y="142" width="198" height="40" rx="6" fill="#fff" stroke="#9db4de"/><text x="355" y="159">Motor transacional de estoque</text><text x="355" y="173" font-size="9.5" fill="#5b6676">compras · vendas · ajustes · saldos</text>
+    <rect x="256" y="190" width="198" height="40" rx="6" fill="#fff" stroke="#9db4de"/><text x="355" y="207">Inteligência</text><text x="355" y="221" font-size="9.5" fill="#5b6676">painel · alertas · notificações · LLM</text>
+    <rect x="256" y="238" width="198" height="30" rx="6" fill="#fff" stroke="#9db4de"/><text x="355" y="257">Auditoria (função auditar)</text>
+    <rect x="256" y="276" width="198" height="34" rx="6" fill="#fff7e6" stroke="#e0a53a"/><text x="355" y="291">Monitor assíncrono (lifespan)</text><text x="355" y="304" font-size="9.5" fill="#8a5a00">varre alertas a cada 15 min</text>
+  </g>
+  <!-- Banco -->
+  <rect x="550" y="70" width="140" height="170" rx="10" fill="#eaf6ee" stroke="#15803d" stroke-width="1.5"/>
+  <text x="620" y="92" text-anchor="middle" font-size="13" font-weight="700" fill="#14532d">PostgreSQL 16</text>
+  <g font-size="10.5" fill="#1f2937" text-anchor="middle">
+    <text x="620" y="116">17 tabelas · 3 migrações</text>
+    <text x="620" y="136">FKs compostas por empresa</text>
+    <text x="620" y="156">CHECKs de saldo e status</text>
+    <text x="620" y="176">Triggers de imutabilidade</text>
+    <text x="620" y="196">Índice único parcial (alertas)</text>
+    <text x="620" y="216">JSONB (auditoria e alertas)</text>
+  </g>
+  <!-- LLM -->
+  <rect x="550" y="262" width="140" height="48" rx="10" fill="#fff" stroke="#94a3b8" stroke-dasharray="5 3"/>
+  <text x="620" y="283" text-anchor="middle" font-size="11.5" font-weight="700" fill="#334155">LLM (opcional)</text>
+  <text x="620" y="298" text-anchor="middle" font-size="9.5" fill="#5b6676">Ollama local ou API OpenAI</text>
+  <!-- setas -->
+  <line x1="160" y1="165" x2="240" y2="165" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)" marker-start="url(#ar)"/>
+  <text x="200" y="157" text-anchor="middle" font-size="9.5" fill="#475569">HTTP + JSON</text>
+  <line x1="470" y1="150" x2="550" y2="150" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)" marker-start="url(#ar)"/>
+  <text x="510" y="142" text-anchor="middle" font-size="9.5" fill="#475569">SQL (pg8000)</text>
+  <path d="M470 205 C 515 215, 520 270, 550 284" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+  <text x="560" y="255" font-size="9" fill="#64748b">somente fatos numéricos</text>
+</svg>
+<figcaption>Figura 1 — Visão geral da arquitetura do StockFlow.</figcaption>
+</figure>
+
+<h3>4.1. Tecnologias adotadas</h3>
+<table>
+  <thead><tr><th style="width:21%">Camada</th><th style="width:31%">Tecnologia</th><th>Por que foi escolhida</th></tr></thead>
+  <tbody>
+    <tr><td>API</td><td>Python 3.11+ · FastAPI · Pydantic 2</td><td>Validação tipada, documentação OpenAPI automática e <i>lifespan</i> para o monitor.</td></tr>
+    <tr><td>Dados</td><td>PostgreSQL 16 · SQLAlchemy 2 · Alembic</td><td>ACID, <code>CHECK</code>, <i>triggers</i>, índices parciais, JSONB e esquema versionado.</td></tr>
+    <tr><td>Driver</td><td><code>pg8000</code></td><td>Python puro: contornou bloqueios de <i>Device Guard</i> do Windows nas máquinas acadêmicas.</td></tr>
+    <tr><td>Segurança</td><td>bcrypt · python-jose · pyotp</td><td>Hash com <i>salt</i>, JWT assinado e 2FA TOTP (RFC 6238).</td></tr>
+    <tr><td>Frontend</td><td>React 19 · Vite 8 · Tailwind 4 · React Router 7 · Axios</td><td>Componentização, <i>build</i> rápido e interface responsiva.</td></tr>
+    <tr><td>Infra local</td><td>Docker Compose</td><td>Mesma versão do banco para toda a equipe, com um único comando.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 5 ============================ -->
+<h2 class="quebra"><span class="n">5.</span>Decisões de engenharia em destaque</h2>
+<div class="grid2">
+  <div class="card"><h4>Isolamento multiempresa no banco</h4>
+    <p>Toda tabela de domínio tem <code>id_empresa</code> e as relações usam chaves estrangeiras compostas <code>(id_empresa, id)</code>. O PostgreSQL recusa (SQLSTATE 23503) vincular registros de empresas diferentes <b>mesmo que o código da aplicação falhe</b>. O token JWT carrega só o id do usuário; a empresa é lida do banco.</p></div>
+  <div class="card"><h4>Saldo nunca negativo</h4>
+    <p>Duas barreiras: a aplicação bloqueia as linhas de saldo (<code>SELECT … FOR UPDATE</code>) e recusa saldo posterior &lt; 0; o banco tem <code>CHECK (quantidade &gt;= 0)</code>. Os bloqueios seguem ordem determinística (produto, local) para evitar <i>deadlock</i>.</p></div>
+  <div class="card"><h4>Ledger e auditoria imutáveis</h4>
+    <p><code>movimentacao_estoque</code> guarda saldo anterior e posterior de cada operação, com <code>CHECK</code> que valida a aritmética. Um <i>trigger</i> bloqueia <code>UPDATE</code> e <code>DELETE</code> nesta tabela e em <code>evento_auditoria</code>. Produtos com histórico são desativados, nunca apagados.</p></div>
+  <div class="card"><h4>Idempotência</h4>
+    <p>Ajustes e recebimentos exigem uma <code>chave</code> UUID: reenviar a mesma requisição não duplica o estoque; reutilizar a chave com dados diferentes retorna 409. Confirmar uma venda já confirmada não baixa o estoque de novo.</p></div>
+  <div class="card"><h4>Alertas sem duplicidade</h4>
+    <p>Índice único parcial por condição ativa + bloqueio por empresa: dois processamentos simultâneos geram <b>um</b> alerta. Quando a condição normaliza o alerta se encerra sozinho; se o problema reaparecer, nasce um novo.</p></div>
+  <div class="card"><h4>IA com degradação graciosa e privacidade</h4>
+    <p>O LLM é opcional e recebe apenas referências temporárias e números — nunca nomes, e-mails ou IDs. Sem configuração, falha de rede ou resposta inválida, o painel usa as orientações das regras, sem erro para o usuário.</p></div>
+</div>
+
+<h3>5.1. Ciclo de vida dos documentos</h3>
+<table>
+  <tbody>
+    <tr><td style="width:14%"><b>Compra</b></td><td><code>RASCUNHO</code> → confirmar → <code>CONFIRMADA</code> → receber (parcial) → <code>PARCIAL</code> → receber (restante) → <code>RECEBIDA</code>. Somente o recebimento altera o saldo.</td></tr>
+    <tr><td><b>Venda</b></td><td><code>RASCUNHO</code> → confirmar → <code>CONFIRMADA</code>. A baixa de todos os itens ocorre numa única transação; se um item faltar, nada é baixado e a venda segue em rascunho.</td></tr>
+    <tr><td><b>Alerta</b></td><td><code>NOVO</code> → <code>LIDO</code> → <code>EM_TRATAMENTO</code> → <code>RESOLVIDO</code> | <code>DESCARTADO</code> (encerrar exige justificativa).</td></tr>
+  </tbody>
+</table>
+
+<div style="break-inside:avoid"><h3>5.2. Alertas automáticos</h3>
+<table>
+  <thead><tr><th>Alerta</th><th style="width:15%">Prioridade</th><th>Condição (limites configuráveis por empresa)</th></tr></thead>
+  <tbody>
+    <tr><td><code>ESTOQUE_CRITICO</code></td><td>1 · Crítica</td><td>Saldo ≤ estoque mínimo do produto.</td></tr>
+    <tr><td><code>PRODUTO_PARADO</code></td><td>2 · Atenção</td><td>Há saldo e a última venda foi há ≥ N dias (padrão 60).</td></tr>
+    <tr><td><code>ATRASO_FORNECEDOR</code></td><td>2 · Atenção</td><td>Compra confirmada/parcial com itens pendentes e data prevista vencida além da tolerância.</td></tr>
+    <tr><td><code>QUEDA_VENDAS</code></td><td>3 · Observação</td><td>Vendas caíram ≥ X % entre duas janelas de 30 dias (padrão 20 %).</td></tr>
+    <tr><td><code>AUMENTO_VENDAS</code></td><td>4 · Oportunidade</td><td>Vendas subiram ≥ X % entre as duas janelas.</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================ 6 ============================ -->
+<h2><span class="n">6.</span>Desvios em relação ao plano original</h2>
+<p>Registrar o que mudou durante a construção é parte da evolução do projeto. As mudanças abaixo foram decisões de engenharia, não omissões.</p>
+<table>
+  <thead><tr><th style="width:30%">Previsto</th><th style="width:30%">Realizado</th><th>Motivo</th></tr></thead>
+  <tbody>
+    <tr><td>Script SQL do Projeto Físico</td><td>Modelos SQLAlchemy + migrações Alembic</td><td>Esquema versionado e reproduzível em qualquer máquina.</td></tr>
+    <tr><td><code>psycopg</code></td><td><code>pg8000</code></td><td>Bloqueio de bibliotecas compiladas pelo Windows das máquinas acadêmicas.</td></tr>
+    <tr><td>Celery ou APScheduler</td><td><code>asyncio</code> no <i>lifespan</i> da API</td><td>Sem dependência extra; o bloqueio por empresa no PostgreSQL já serializa o processamento.</td></tr>
+    <tr><td><i>Middleware</i> de auditoria</td><td>Função <code>auditar()</code> explícita + tabela imutável</td><td>Registra o contexto de negócio (documento, antes/depois) e a garantia vem do banco.</td></tr>
+    <tr><td>Validação de CPF/CNPJ</td><td>Não implementada</td><td>Pendência registrada na seção 8.</td></tr>
+    <tr><td>Transferência entre locais</td><td>Não implementada</td><td>Decisão de escopo ainda em aberto.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 7 ============================ -->
+<h2 class="quebra"><span class="n">7.</span>Verificação e resultados</h2>
+<p>Em <b>09/11/2026</b> a suíte foi executada na máquina de desenvolvimento, contra um PostgreSQL 16 descartável em Docker, com as três migrações aplicadas do zero. Esta é uma execução pontual: <b>não há integração contínua configurada</b>.</p>
+<table>
+  <thead><tr><th style="width:50%">Verificação</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td><code>python -m unittest discover -s tests -v</code></td><td><span class="tag t-ok">10 de 10 aprovados</span> em ≈ 6,6 s (6 de integração + 4 do resumo por LLM)</td></tr>
+    <tr><td><code>alembic upgrade head</code> do zero + <code>alembic check</code></td><td><span class="tag t-ok">OK</span> três migrações aplicadas; “No new upgrade operations detected”</td></tr>
+    <tr><td><code>npm run build</code> (frontend)</td><td><span class="tag t-ok">OK</span> 1.976 módulos; JS de 383 kB (120 kB comprimido)</td></tr>
+  </tbody>
+</table>
+
+<h3>7.1. O que os testes comprovam</h3>
+<table>
+  <thead><tr><th style="width:36%">Cenário</th><th>Evidência</th></tr></thead>
+  <tbody>
+    <tr><td><b>Concorrência</b><br><span class="small mute">test_vendas_concorrentes…</span></td><td>Duas vendas de 4 unidades disputam um saldo de 5, liberadas ao mesmo instante por uma barreira de <i>threads</i>: o resultado é <b>sempre um 200 e um 409</b>, com saldo final 1.</td></tr>
+    <tr><td><b>Atomicidade</b><br><span class="small mute">test_reverte_venda_inteira…</span></td><td>Venda com um item sem saldo sofre <i>rollback</i> completo e continua em rascunho; <code>DELETE</code> direto no ledger é bloqueado pelo <i>trigger</i>.</td></tr>
+    <tr><td><b>Idempotência</b><br><span class="small mute">test_compra_parcial…</span></td><td>Reenviar o mesmo recebimento não duplica estoque; recebimento acima do pendente → 409; confirmar a venda duas vezes baixa uma só.</td></tr>
+    <tr><td><b>Isolamento multiempresa</b><br><span class="small mute">test_isolamento_perfil_e_sku</span></td><td>A empresa B não vê nem confirma documentos da A (404); vincular categoria de outra empresa falha na API <b>e no banco</b> (SQLSTATE 23503).</td></tr>
+    <tr><td><b>Perfis</b></td><td>O perfil ANALISTA consulta, mas não movimenta estoque, não lê a auditoria e não gera resumo (403).</td></tr>
+    <tr><td><b>Alertas</b><br><span class="small mute">test_alerta_deduplica…</span></td><td>Processamentos simultâneos geram um único alerta; transições inválidas → 409; encerrar sem justificativa → 422; reincidência cria alerta novo.</td></tr>
+    <tr><td><b>LLM</b><br><span class="small mute">ResumoAlertasTest</span></td><td>O provedor recebe só fatos numéricos; falha ou resposta inválida → <i>fallback</i> por regras; Ollama remoto é recusado.</td></tr>
+  </tbody>
+</table>
+
+<h3>7.2. Dados de demonstração</h3>
+<p>O script <code>popular_demo.py</code> cria duas lojas fictícias com 90 dias de operações e cenários determinísticos (estoque crítico, produto parado há 75 dias, queda de 30 % nas vendas, produto sem base anterior, fornecedor em atraso e o mesmo SKU em empresas distintas). A carga é idempotente e serve para apresentações e para exercitar os alertas.</p>
+
+<!-- ============================ 8 ============================ -->
+<h2><span class="n">8.</span>Estado atual e limitações conhecidas</h2>
+<div class="nota"><b>Estado:</b> o sistema está <b>operacional e demonstrável</b>: login com 2FA, painel, cadastros, estoque, compras, vendas, alertas, notificações, auditoria e resumo por LLM funcionam de ponta a ponta. A Fase 6 está <b>parcial</b>.</div>
+
+<p>Na revisão do código foram identificadas as limitações abaixo. Nenhuma impede a demonstração acadêmica; todas devem ser tratadas antes de qualquer uso em produção.</p>
+<table>
+  <thead><tr><th style="width:4%">#</th><th style="width:46%">Limitação</th><th>Correção sugerida</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><code>SECRET_KEY</code> tem valor padrão fixo no código.</td><td>Exigir a chave por ambiente e falhar ao iniciar se ausente.</td></tr>
+    <tr><td>2</td><td>CORS aberto (<code>allow_origins=["*"]</code>) com credenciais.</td><td>Restringir à origem do frontend.</td></tr>
+    <tr><td>3</td><td>Login por <b>nome</b> usa <code>.first()</code>, mas o nome de usuário não é único.</td><td>Tornar o nome único ou aceitar só e-mail.</td></tr>
+    <tr><td>4</td><td>Cadastros (categorias, produtos, locais, pessoas) não verificam o perfil: um ANALISTA pode criar e excluir.</td><td>Reutilizar as dependências de perfil do módulo de estoque.</td></tr>
+    <tr><td>5</td><td>O frontend não oculta ações por perfil; só o backend bloqueia (403).</td><td>Esconder ou desabilitar ações conforme o perfil.</td></tr>
+    <tr><td>6</td><td>CPF/CNPJ não são validados.</td><td>Validar dígitos verificadores no esquema Pydantic.</td></tr>
+    <tr><td>7</td><td>Token em <code>localStorage</code>, sem <i>refresh token</i>.</td><td>Cookie <code>HttpOnly</code> + <i>refresh</i>.</td></tr>
+    <tr><td>8</td><td>Sem teste de volume, sem testes do frontend, sem CI.</td><td>Concluir a Fase 6 e criar pipeline com Postgres de serviço.</td></tr>
+  </tbody>
+</table>
+
+<h3>8.1. Próximos passos</h3>
+<ul>
+  <li><b>Concluir a Fase 6:</b> teste de volume com a carga de demonstração ampliada e medição de tempo do painel, dos alertas e das listagens; revisão de responsividade em celular (uso no balcão).</li>
+  <li><b>Endurecer a segurança e os perfis</b> (limitações 1 a 6) e cobrir autenticação e cadastros com testes automatizados.</li>
+  <li><b>Evolução de produto</b> prevista no Plano de Negócios: previsão de demanda e sugestão de reposição — hoje o sistema <i>alerta</i>, mas ainda não <i>prevê</i> nem <i>sugere quantidades</i>.</li>
+</ul>
+
+<!-- ============================ 9 ============================ -->
+<h2 class="quebra"><span class="n">9.</span>Como executar</h2>
+<p>Requisitos: Git, Docker Desktop, Python 3.11+ e Node.js 18+. Em três terminais, a partir da raiz do repositório:</p>
+<table>
+  <thead><tr><th style="width:18%">Etapa</th><th>Comando</th></tr></thead>
+  <tbody>
+    <tr><td>Banco</td><td><code>docker compose up -d</code></td></tr>
+    <tr><td>Backend</td><td><code>cd backend</code> · <code>python -m venv venv</code> · <code>venv\Scripts\python.exe -m pip install -r requirements.txt</code> · <code>venv\Scripts\python.exe -m alembic upgrade head</code> · <code>venv\Scripts\python.exe -m uvicorn app.main:app --reload</code> &nbsp;→ API em <code>127.0.0.1:8000</code> (Swagger em <code>/docs</code>)</td></tr>
+    <tr><td>Frontend</td><td><code>cd frontend</code> · <code>npm install</code> · <code>npm run dev</code> &nbsp;→ interface em <code>localhost:5173</code></td></tr>
+    <tr><td>Primeira conta</td><td><code>venv\Scripts\python.exe gerenciar_usuario.py</code> → opção 5 (criar usuário e empresa)</td></tr>
+    <tr><td>Demonstração</td><td><code>popular_demo.py</code> com <code>STOCKFLOW_DEMO_DATABASE_URL</code> apontando para o banco <code>stockflow_demo</code> (passo a passo completo no <code>DOCUMENTACAO.md</code>)</td></tr>
+  </tbody>
+</table>
+
+<h3>Documentação do repositório</h3>
+<ul class="small">
+  <li><code>DOCUMENTACAO.md</code> — documentação técnica completa (arquitetura, modelo de dados, API, testes, limitações).</li>
+  <li><code>README.md</code> — visão rápida e instruções por fase.</li>
+  <li><code>plano_de_trabalho_stockflow.md</code> — cronograma original das seis fases.</li>
+  <li><code>subsidio/</code> — Plano de Negócios e Project Model Canvas.</li>
+</ul>
+<p class="small mute" style="margin-top:6mm">Fontes deste relatório: código-fonte da branch <code>main</code> (commit 0fee0cd), histórico do Git, e execução da suíte de testes, das migrações e do <i>build</i> do frontend em 09/11/2026.</p>
+
+</body>
+</html>
