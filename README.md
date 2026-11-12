@@ -90,12 +90,14 @@ venv\Scripts\python.exe popular_demo.py
 
 O terminal mostra uma senha gerada para as contas `emporio@stockflow.test` e `mercearia@stockflow.test`. Para definir a senha na primeira carga, use a variável `STOCKFLOW_DEMO_PASSWORD`.
 
-Para explorar os dados na interface, inicie a API apontando para o banco de demonstração e abra o frontend como de costume.
+Para explorar os dados na interface, aponte a API para o banco de demonstração no arquivo `backend/.env`. Se ele ainda não existir, crie-o a partir do modelo versionado e deixe ativa a linha `DATABASE_URL` que termina em `stockflow_demo`.
 
 ```powershell
-$env:DATABASE_URL = $env:STOCKFLOW_DEMO_DATABASE_URL
+copy .env.example .env
 venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
+
+A configuração fica salva no arquivo, então o login nas contas de demonstração continua funcionando ao reabrir o projeto. Definir `$env:DATABASE_URL` no terminal também funciona, mas vale só para aquela janela: em um terminal novo, a API volta para `stockflow_db`, onde as contas de demonstração não existem, e o login responde "E-mail ou senha incorretos".
 
 | Cenário | Resultado esperado na data de referência |
 | --- | --- |
@@ -145,7 +147,7 @@ Se esta instalação usa a instância nativa na porta `55432`, os dados ficam em
 & "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D ".\pgdata\stockflow-local" -l ".\pgdata\stockflow-local.log" -w start
 ```
 
-O arquivo `backend/.env` aponta para o banco principal `stockflow_db`. Para experimentar o painel com os dados fictícios, troque o nome do banco no final de `DATABASE_URL` para `stockflow_demo` e reinicie o backend. Quando a carga foi feita nesta instância, as contas de demonstração estão em `pgdata/demo-acesso.txt`.
+O arquivo local `backend/.env` (criado a partir de `backend/.env.example`) define qual banco a API usa; o modelo aponta para o banco principal `stockflow_db`. Para experimentar o painel com os dados fictícios, troque o nome do banco no final de `DATABASE_URL` para `stockflow_demo` e reinicie o backend. Quando a carga foi feita nesta instância, as contas de demonstração estão em `pgdata/demo-acesso.txt`.
 
 ### Resumo opcional por LLM
 

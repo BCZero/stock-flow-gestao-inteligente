@@ -461,9 +461,12 @@ cd backend
 $env:STOCKFLOW_DEMO_DATABASE_URL = "postgresql+pg8000://postgres:password@localhost:5432/stockflow_demo"
 $env:STOCKFLOW_DEMO_PASSWORD = "SenhaForte123"
 venv\Scripts\python.exe popular_demo.py
-$env:DATABASE_URL = $env:STOCKFLOW_DEMO_DATABASE_URL
+copy .env.example .env   # se backend/.env ainda não existir
+# Em backend/.env, deixe ativa a linha DATABASE_URL que termina em stockflow_demo
 venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
+
+O banco escolhido fica gravado em `backend/.env` e vale em qualquer terminal. Um `$env:DATABASE_URL` definido na sessão se perde ao fechar o terminal, e a API volta para `stockflow_db`, onde as contas de demonstração não existem.
 
 Login: `emporio@stockflow.test` (ou `mercearia@stockflow.test`) com a senha definida acima.
 
@@ -479,6 +482,8 @@ venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
 ### 12.9. Variáveis de ambiente (`backend/.env`)
+
+O arquivo `backend/.env` é local e não é versionado. Crie-o com `copy .env.example .env` na pasta `backend`. Use apenas as variáveis abaixo: qualquer outra chave no arquivo impede a API de iniciar (`Extra inputs are not permitted`).
 
 | Variável | Padrão | Função |
 | :--- | :--- | :--- |
