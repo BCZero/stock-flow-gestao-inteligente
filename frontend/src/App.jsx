@@ -10,9 +10,11 @@ import Pessoas from './pages/Pessoas';
 import Estoque from './pages/Estoque';
 import Transacoes from './pages/Transacoes';
 import Painel from './pages/Painel';
+import { ProvedorAvisos } from './components/ui';
 
 function App() {
   return (
+    <ProvedorAvisos>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -32,6 +34,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ProvedorAvisos>
   );
 }
 

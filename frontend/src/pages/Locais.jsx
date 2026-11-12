@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MapPin, Plus, Trash2 } from 'lucide-react';
 import api from '../services/api';
+import { mensagemErro } from '../services/estoque';
+import {
+  Botao, CabecalhoPagina, Campo, Carregando, Cartao, Celula, EstadoVazio, Linha, Tabela, useAvisos,
+} from '../components/ui';
 
 const Locais = () => {
+  const { avisar, confirmar } = useAvisos();
   const [locais, setLocais] = useState([]);
   const [nome, setNome] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,7 +21,7 @@ const Locais = () => {
       const { data } = await api.get('/locais/');
       setLocais(data);
     } catch (error) {
-      console.error(error);
+      avisar(mensagemErro(error), 'perigo');
     } finally {
       setLoading(false);
     }
@@ -27,68 +32,55 @@ const Locais = () => {
     try {
       await api.post('/locais/', { nome });
       setNome('');
+      avisar('Local cadastrado.');
       carregarDados();
     } catch (error) {
-      alert(error.response?.data?.detail || "Erro ao salvar local");
+      avisar(error.response?.data?.detail || 'Erro ao salvar local', 'perigo');
     }
   };
 
-  const handleExcluir = async (id) => {
-    if (!window.confirm("Deseja realmente excluir?")) return;
+  const handleExcluir = async (local) => {
+    const ok = await confirmar({ titulo: 'Excluir local?', texto: `"${local.nome}" será removido do cadastro.`, acao: 'Excluir' });
+    if (!ok) return;
     try {
-      await api.delete(`/locais/${id}`);
+      await api.delete(`/locais/${local.id}`);
+      avisar('Local excluído.');
       carregarDados();
     } catch (error) {
-      alert(error.response?.data?.detail || "Erro ao excluir cadastro");
+      avisar(error.response?.data?.detail || 'Erro ao excluir cadastro', 'perigo');
     }
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Locais de Estoque</h1>
+    <div className="space-y-6">
+      <CabecalhoPagina titulo="Locais de estoque" icone={MapPin} descricao="Onde os produtos ficam guardados: depósito, balcão, prateleira." />
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <form onSubmit={handleSalvar} className="flex gap-4">
-            <input
-              type="text"
-              required
-              placeholder="Nome do Local (Ex: Prateleira A, Galpão 1)"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-              <Plus className="h-5 w-5 mr-2" /> Salvar Local
-            </button>
-          </form>
-        </div>
+      <Cartao titulo="Novo local">
+        <form onSubmit={handleSalvar} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <Campo label="Nome do local" className="flex-1" required value={nome}
+            placeholder="Depósito, Prateleira A, Galpão 1…" onChange={(e) => setNome(e.target.value)} />
+          <Botao type="submit" icone={Plus}>Salvar local</Botao>
+        </form>
+      </Cartao>
 
-        <div>
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Carregando...</div>
-          ) : (
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Local</th>
-                  <th className="px-6 py-4 font-medium w-32 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 text-sm">
-                {locais.map((loc) => (
-                  <tr key={loc.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{loc.nome}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button onClick={() => handleExcluir(loc.id)} className="text-red-500 hover:text-red-700 font-medium">Excluir</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      <Cartao titulo="Locais cadastrados" semPadding>
+        {loading ? <Carregando /> : locais.length === 0 ? (
+          <EstadoVazio icone={MapPin} titulo="Cadastre seu primeiro local" texto="Compras, vendas e ajustes sempre indicam um local de estoque." />
+        ) : (
+          <Tabela colunas={[{ titulo: 'Local' }, { titulo: 'Ações', className: 'w-32 text-right' }]}>
+            {locais.map((loc) => (
+              <Linha key={loc.id}>
+                <Celula className="font-medium text-slate-900">
+                  <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-marca-500" aria-hidden="true" />{loc.nome}</span>
+                </Celula>
+                <Celula className="text-right">
+                  <Botao variante="perigoDiscreto" icone={Trash2} onClick={() => handleExcluir(loc)}>Excluir</Botao>
+                </Celula>
+              </Linha>
+            ))}
+          </Tabela>
+        )}
+      </Cartao>
     </div>
   );
 };

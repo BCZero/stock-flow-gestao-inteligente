@@ -1,17 +1,9 @@
-import { useId } from 'react';
-import { campo } from '../services/estoque';
+import { Selecao } from './ui';
 
 export function Seletor({ label, registros, value, onChange, required = true }) {
-  const id = useId();
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">{label}</label>
-      <select id={id} className={campo} value={value} onChange={(e) => onChange(e.target.value)} required={required}>
-        <option value="">{required ? 'Selecione' : 'Sem identificação'}</option>
-        {registros.map(({ id: registroId, nome }) => (
-          <option value={registroId} key={registroId}>{nome}</option>
-        ))}
-      </select>
-    </div>
+    <Selecao label={label} value={value} onChange={(e) => onChange(e.target.value)} required={required}
+      vazio={required ? 'Selecione' : 'Sem identificação'}
+      opcoes={registros.map(({ id, nome }) => ({ value: id, label: nome }))} />
   );
 }

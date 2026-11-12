@@ -1,1 +1,80 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/plus-jakarta-sans";
 @import "tailwindcss";
+
+/*
+ * Identidade visual StockFlow — direção "Petróleo + âmbar".
+ * Fonte da verdade das cores e fontes. Documentação: .claude/skills/stockflow-identidade-visual/SKILL.md
+ *
+ *  marca     (petróleo) → navegação, ação principal, foco, links, dados de "vendas"
+ *  destaque  (âmbar)    → acento da marca, atenção/alertas, pontos de energia (nunca botão principal)
+ *  slate                → textos, bordas e superfícies neutras
+ *  emerald / rose / sky → sucesso / perigo / informação
+ */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-marca-50: #edf8f8;
+  --color-marca-100: #d3eeee;
+  --color-marca-200: #a9dcdc;
+  --color-marca-300: #73c3c3;
+  --color-marca-400: #3fa6a8;
+  --color-marca-500: #138a91;
+  --color-marca-600: #0e727a;
+  --color-marca-700: #0f5c63;
+  --color-marca-800: #114b51;
+  --color-marca-900: #123e44;
+  --color-marca-950: #0b2a33;
+
+  --color-destaque-50: #fff8eb;
+  --color-destaque-100: #feebc8;
+  --color-destaque-200: #fdd58c;
+  --color-destaque-300: #fbbd52;
+  --color-destaque-400: #f5a524;
+  --color-destaque-500: #e08a0b;
+  --color-destaque-600: #b86a07;
+  --color-destaque-700: #8f500a;
+  --color-destaque-800: #74410f;
+  --color-destaque-900: #603611;
+
+  --color-fundo: #f4f7f8;
+
+  --shadow-cartao: 0 1px 2px rgb(11 42 51 / 0.05), 0 1px 3px rgb(11 42 51 / 0.06);
+  --shadow-flutuante: 0 10px 30px rgb(11 42 51 / 0.14), 0 2px 8px rgb(11 42 51 / 0.08);
+
+  --animate-surgir: surgir 180ms ease-out;
+
+  @keyframes surgir {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-fundo font-sans text-slate-800 antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3 {
+    @apply font-display text-slate-900;
+  }
+
+  ::selection {
+    @apply bg-marca-200 text-marca-950;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-marca-500;
+  }
+
+  /* Valores monetários e quantidades alinham nas colunas. */
+  .numero {
+    font-variant-numeric: tabular-nums;
+  }
+}

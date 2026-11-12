@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Package, Plus, Trash2 } from 'lucide-react';
 import api from '../services/api';
+import { mensagemErro } from '../services/estoque';
+import {
+  Botao, CabecalhoPagina, Campo, Carregando, Cartao, Celula, EstadoVazio, Etiqueta, Linha, Selecao, Tabela, useAvisos,
+} from '../components/ui';
+
+const unidades = ['UN', 'CX', 'KG', 'G', 'L', 'ML', 'PCT', 'M'];
 
 const Produtos = () => {
+  const { avisar, confirmar } = useAvisos();
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Form state
   const [sku, setSku] = useState('');
   const [nome, setNome] = useState('');
@@ -26,9 +34,9 @@ const Produtos = () => {
       ]);
       setProdutos(resProd.data);
       setCategorias(resCat.data);
-      if (resCat.data.length > 0) setIdCategoria(resCat.data[0].id);
+      if (resCat.data.length > 0) setIdCategoria((atual) => atual || resCat.data[0].id);
     } catch (error) {
-      console.error(error);
+      avisar(mensagemErro(error), 'perigo');
     } finally {
       setLoading(false);
     }
@@ -45,82 +53,76 @@ const Produtos = () => {
         id_categoria: parseInt(idCategoria)
       });
       setSku(''); setNome(''); setEstoqueMin(0);
+      avisar('Produto cadastrado.');
       carregarDados();
     } catch (error) {
-      alert(error.response?.data?.detail || "Erro ao salvar produto");
+      avisar(error.response?.data?.detail || 'Erro ao salvar produto', 'perigo');
     }
   };
 
-  const handleExcluir = async (id) => {
-    if (!window.confirm("Excluir produto?")) return;
+  const handleExcluir = async (produto) => {
+    const ok = await confirmar({ titulo: 'Excluir produto?', texto: `${produto.sku} · ${produto.nome} será removido do catálogo.`, acao: 'Excluir' });
+    if (!ok) return;
     try {
-      await api.delete(`/produtos/${id}`);
+      await api.delete(`/produtos/${produto.id}`);
+      avisar('Produto excluído.');
       carregarDados();
     } catch (error) {
-      console.error(error);
+      avisar(error.response?.data?.detail || 'Erro ao excluir produto', 'perigo');
     }
   };
+
+  const nomeCategoria = (produto) => produto.categoria?.nome
+    ?? categorias.find((c) => c.id === produto.id_categoria)?.nome ?? '—';
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Produtos</h1>
+    <div className="space-y-6">
+      <CabecalhoPagina titulo="Produtos" icone={Package} descricao="Catálogo de itens controlados no estoque." />
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Novo Produto</h2>
-          
-          <form onSubmit={handleSalvar} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="col-span-1 lg:col-span-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">SKU</label>
-              <input type="text" required value={sku} onChange={e=>setSku(e.target.value)} className="w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500" placeholder="Código Único" />
+      <Cartao titulo="Novo produto">
+        {!loading && categorias.length === 0 ? (
+          <EstadoVazio icone={Package} titulo="Cadastre uma categoria primeiro" texto="Todo produto pertence a uma categoria.">
+            <Link to="/categorias" className="text-sm font-semibold text-marca-700 hover:text-marca-800">Ir para categorias</Link>
+          </EstadoVazio>
+        ) : (
+          <form onSubmit={handleSalvar} className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-end xl:grid-cols-[150px_1fr_220px_220px_auto]">
+            <Campo label="SKU" required value={sku} onChange={(e) => setSku(e.target.value)} placeholder="CAFE-250" />
+            <Campo label="Nome do produto" required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Café torrado 250 g" />
+            <Selecao label="Categoria" value={idCategoria} onChange={(e) => setIdCategoria(e.target.value)}
+              opcoes={categorias.map((c) => ({ value: c.id, label: c.nome }))} />
+            <div className="grid grid-cols-2 gap-3">
+              <Selecao label="Unidade" value={unidade} onChange={(e) => setUnidade(e.target.value)}
+                opcoes={unidades.map((u) => ({ value: u, label: u }))} />
+              <Campo label="Mínimo" type="number" min="0" step="0.001" value={estoqueMin} onChange={(e) => setEstoqueMin(e.target.value)} />
             </div>
-            <div className="col-span-1 md:col-span-1 lg:col-span-2">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nome do Produto</label>
-              <input type="text" required value={nome} onChange={e=>setNome(e.target.value)} className="w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500" />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Categoria</label>
-              <select value={idCategoria} onChange={e=>setIdCategoria(e.target.value)} className="w-full rounded-md border border-gray-300 p-2 text-sm outline-none focus:border-blue-500">
-                {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-              </select>
-            </div>
-            <div className="col-span-1 flex items-end">
-              <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 flex items-center justify-center text-sm font-medium">
-                <Plus className="h-4 w-4 mr-1" /> Salvar
-              </button>
-            </div>
+            <Botao type="submit" icone={Plus}>Salvar</Botao>
           </form>
-        </div>
+        )}
+      </Cartao>
 
-        <div>
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Carregando...</div>
-          ) : (
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <tr>
-                  <th className="px-6 py-4 font-medium">SKU</th>
-                  <th className="px-6 py-4 font-medium">Produto</th>
-                  <th className="px-6 py-4 font-medium">Categoria ID</th>
-                  <th className="px-6 py-4 font-medium w-32 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 text-sm">
-                {produtos.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-mono text-gray-500">{p.sku}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{p.nome}</td>
-                    <td className="px-6 py-4 text-gray-500">Cat: #{p.id_categoria}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button onClick={() => handleExcluir(p.id)} className="text-red-500 hover:text-red-700 font-medium">Excluir</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      <Cartao titulo="Produtos cadastrados" semPadding
+        acoes={produtos.length > 0 && <Etiqueta tom="marca">{produtos.length} itens</Etiqueta>}>
+        {loading ? <Carregando /> : produtos.length === 0 ? (
+          <EstadoVazio icone={Package} titulo="Nenhum produto no catálogo" texto="Cadastre o primeiro produto para começar a controlar o estoque." />
+        ) : (
+          <Tabela colunas={[
+            { titulo: 'SKU' }, { titulo: 'Produto' }, { titulo: 'Categoria' },
+            { titulo: 'Mínimo', className: 'text-right' }, { titulo: 'Ações', className: 'w-32 text-right' },
+          ]}>
+            {produtos.map((p) => (
+              <Linha key={p.id}>
+                <Celula className="whitespace-nowrap font-mono text-xs text-slate-500">{p.sku}</Celula>
+                <Celula className="font-medium text-slate-900">{p.nome}</Celula>
+                <Celula><Etiqueta tom="neutro">{nomeCategoria(p)}</Etiqueta></Celula>
+                <Celula numero>{Number(p.estoque_minimo).toLocaleString('pt-BR')} {p.unidade_medida}</Celula>
+                <Celula className="text-right">
+                  <Botao variante="perigoDiscreto" icone={Trash2} onClick={() => handleExcluir(p)}>Excluir</Botao>
+                </Celula>
+              </Linha>
+            ))}
+          </Tabela>
+        )}
+      </Cartao>
     </div>
   );
 };

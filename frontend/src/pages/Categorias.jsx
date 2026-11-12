@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Tags, Trash2 } from 'lucide-react';
 import api from '../services/api';
+import { mensagemErro } from '../services/estoque';
+import {
+  Botao, CabecalhoPagina, Campo, Carregando, Cartao, Celula, EstadoVazio, Linha, Tabela, useAvisos,
+} from '../components/ui';
 
 const Categorias = () => {
+  const { avisar, confirmar } = useAvisos();
   const [categorias, setCategorias] = useState([]);
   const [novaCategoria, setNovaCategoria] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,7 +21,7 @@ const Categorias = () => {
       const { data } = await api.get('/categorias/');
       setCategorias(data);
     } catch (error) {
-      console.error("Erro ao carregar categorias", error);
+      avisar(mensagemErro(error), 'perigo');
     } finally {
       setLoading(false);
     }
@@ -28,74 +33,54 @@ const Categorias = () => {
     try {
       await api.post('/categorias/', { nome: novaCategoria });
       setNovaCategoria('');
+      avisar('Categoria cadastrada.');
       carregarCategorias();
     } catch (error) {
-      alert(error.response?.data?.detail || "Erro ao criar categoria");
+      avisar(error.response?.data?.detail || 'Erro ao criar categoria', 'perigo');
     }
   };
 
-  const handleExcluir = async (id) => {
-    if (!window.confirm("Deseja realmente excluir?")) return;
+  const handleExcluir = async (categoria) => {
+    const ok = await confirmar({ titulo: 'Excluir categoria?', texto: `"${categoria.nome}" será removida do cadastro.`, acao: 'Excluir' });
+    if (!ok) return;
     try {
-      await api.delete(`/categorias/${id}`);
+      await api.delete(`/categorias/${categoria.id}`);
+      avisar('Categoria excluída.');
       carregarCategorias();
     } catch (error) {
-      console.error(error);
+      avisar(error.response?.data?.detail || 'Erro ao excluir categoria', 'perigo');
     }
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Categorias</h1>
-      </div>
+    <div className="space-y-6">
+      <CabecalhoPagina titulo="Categorias" icone={Tags} descricao="Agrupe os produtos para organizar o catálogo e os relatórios." />
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Nova Categoria</h2>
-          <form onSubmit={handleSalvar} className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Nome da Categoria (Ex: Eletrônicos)"
-              value={novaCategoria}
-              onChange={(e) => setNovaCategoria(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-              <Plus className="h-5 w-5 mr-2" /> Salvar
-            </button>
-          </form>
-        </div>
+      <Cartao titulo="Nova categoria">
+        <form onSubmit={handleSalvar} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <Campo label="Nome da categoria" className="flex-1" required value={novaCategoria}
+            placeholder="Bebidas, Limpeza, Eletrônicos…" onChange={(e) => setNovaCategoria(e.target.value)} />
+          <Botao type="submit" icone={Plus}>Salvar categoria</Botao>
+        </form>
+      </Cartao>
 
-        <div className="p-0">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Carregando...</div>
-          ) : categorias.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">Nenhuma categoria cadastrada.</div>
-          ) : (
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <tr>
-                  <th className="px-6 py-4 font-medium">ID</th>
-                  <th className="px-6 py-4 font-medium">Nome</th>
-                  <th className="px-6 py-4 font-medium w-32 text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 text-sm">
-                {categorias.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-gray-500">#{cat.id}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{cat.nome}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button onClick={() => handleExcluir(cat.id)} className="text-red-500 hover:text-red-700 font-medium">Excluir</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+      <Cartao titulo="Categorias cadastradas" semPadding>
+        {loading ? <Carregando /> : categorias.length === 0 ? (
+          <EstadoVazio icone={Tags} titulo="Crie sua primeira categoria" texto="Categorias são obrigatórias para cadastrar produtos." />
+        ) : (
+          <Tabela colunas={[{ titulo: 'Código', className: 'w-28' }, { titulo: 'Nome' }, { titulo: 'Ações', className: 'w-32 text-right' }]}>
+            {categorias.map((cat) => (
+              <Linha key={cat.id}>
+                <Celula className="font-mono text-xs text-slate-400">#{cat.id}</Celula>
+                <Celula className="font-medium text-slate-900">{cat.nome}</Celula>
+                <Celula className="text-right">
+                  <Botao variante="perigoDiscreto" icone={Trash2} onClick={() => handleExcluir(cat)}>Excluir</Botao>
+                </Celula>
+              </Linha>
+            ))}
+          </Tabela>
+        )}
+      </Cartao>
     </div>
   );
 };

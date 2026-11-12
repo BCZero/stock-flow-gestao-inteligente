@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from './api';
 
-export const campo = 'mt-1 w-full rounded-md border border-gray-300 bg-white p-2 text-sm';
-export const botao = 'rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50';
-export const painel = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
+// Classes de estilo vêm da identidade visual (components/ui/estilos.js).
+export { campo, botao, painel } from '../components/ui/estilos';
 
 export function mensagemErro(erro) {
   const detalhe = erro.response?.data?.detail;
