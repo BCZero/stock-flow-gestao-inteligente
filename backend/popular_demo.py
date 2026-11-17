@@ -11,13 +11,13 @@ from uuid import NAMESPACE_URL, uuid5
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, select, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app.api.endpoints.estoque import (
     confirmar_documento, receber_compra, registrar_ajuste, salvar_rascunho,
 )
 from app.core.security import get_password_hash
+from app.db.conexao import LOCAIS, preparar_conexao
 from app.db.models import Categoria, Empresa, EventoAuditoria, LocalEstoque, PerfilEnum, Pessoa, Produto, TipoPessoaEnum, Usuario
 from app.schemas.estoque import AjusteEntrada, DocumentoEntrada, ItemEntrada, ItemRecebimento, RecebimentoEntrada
 
@@ -183,13 +183,16 @@ def carga_anterior(conexao):
     raise ValueError("O banco contém dados anteriores. Use um banco de demonstração vazio para a primeira carga.")
 
 
-def executar(url, referencia, senha):
-    destino = make_url(url)
+def executar(url, referencia, senha, permitir_remoto=False):
+    # Converte postgresql:// (formato do Neon) para pg8000 e liga o SSL fora do localhost, como a API.
+    destino, connect_args = preparar_conexao(url)
     if destino.drivername != "postgresql+pg8000" or destino.database != BANCO_DEMO:
-        raise ValueError("Informe uma URL postgresql+pg8000 para o banco stockflow_demo.")
-    if destino.host not in ("localhost", "127.0.0.1", "::1") or destino.query:
-        raise ValueError("Use um PostgreSQL local e uma URL sem parâmetros adicionais.")
-    engine = create_engine(destino)
+        raise ValueError("Informe uma URL PostgreSQL para o banco stockflow_demo.")
+    if destino.query:
+        raise ValueError("Use uma URL sem parâmetros adicionais (sslmode é tratado automaticamente).")
+    if destino.host not in LOCAIS and not permitir_remoto:
+        raise ValueError("O banco não está nesta máquina. Para carregar em um banco na nuvem, use --permitir-remoto.")
+    engine = create_engine(destino, connect_args=connect_args)
     try:
         with engine.begin() as conexao:
             if conexao.scalar(text("SELECT current_database()")) != BANCO_DEMO:
@@ -216,16 +219,18 @@ def executar(url, referencia, senha):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-referencia", type=date.fromisoformat, default=date.today(), help="Data de corte (AAAA-MM-DD)")
+    parser.add_argument("--permitir-remoto", action="store_true",
+                        help="Aceita um banco stockflow_demo fora desta máquina (ex.: Neon)")
     args = parser.parse_args()
     url = os.environ.get("STOCKFLOW_DEMO_DATABASE_URL")
     if not url:
-        parser.error("Defina STOCKFLOW_DEMO_DATABASE_URL para o banco local stockflow_demo.")
+        parser.error("Defina STOCKFLOW_DEMO_DATABASE_URL para o banco stockflow_demo.")
     senha_configurada = os.environ.get("STOCKFLOW_DEMO_PASSWORD")
     senha = senha_configurada or secrets.token_urlsafe(16)
     if not 8 <= len(senha.encode("utf-8")) <= 72:
         parser.error("STOCKFLOW_DEMO_PASSWORD deve ter entre 8 e 72 bytes em UTF-8.")
     try:
-        anterior = executar(url, args.data_referencia, senha)
+        anterior = executar(url, args.data_referencia, senha, args.permitir_remoto)
     except ValueError as erro:
         parser.exit(1, f"{erro}\n")
 

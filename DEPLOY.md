@@ -26,9 +26,28 @@ O arquivo [`render.yaml`](render.yaml) descreve os dois serviços do Render. Sen
 
    Guarde esse valor: ele é a `DATABASE_URL`. O backend converte o formato e liga o SSL sozinho (`backend/app/db/conexao.py`).
 
+> **Pela CLI da Neon** (alternativa ao painel), já com `neon login` feito:
+>
+> ```powershell
+> neon projects create --name stockflow --region-id aws-us-east-1 --pg-version 16 --database stockflow_demo --no-secrets
+> neon connection-string main --project-id <id-do-projeto> --database-name stockflow_demo --role-name stockflow_demo_owner
+> ```
+>
+> O segundo comando imprime a `DATABASE_URL` (sem pooler). Não a cole em arquivos versionados.
+
 ## 2. Dados de demonstração (opcional, recomendado)
 
-Copia o banco `stockflow_demo` do seu Docker para o Neon, com as contas `emporio@stockflow.test` e `mercearia@stockflow.test` e os 90 dias de operações. Com o Docker e o container `stockflow_db` ligados, rode **um único comando** no PowerShell, trocando a URL pela do Neon:
+**Opção A — carga direta, sem Docker.** O banco do Neon precisa se chamar `stockflow_demo` (como no comando acima). Na pasta `backend`:
+
+```powershell
+$env:STOCKFLOW_DEMO_DATABASE_URL = "postgresql://usuario:senha@ep-xxxx.us-east-1.aws.neon.tech/stockflow_demo?sslmode=require"
+$env:STOCKFLOW_DEMO_PASSWORD = "uma-senha-para-as-contas-demo"
+venv\Scripts\python.exe popular_demo.py --permitir-remoto
+```
+
+Sem `--permitir-remoto` o script recusa bancos fora da sua máquina, para evitar uma carga no lugar errado. Ele aplica as migrations e carrega as duas lojas numa única transação; rodar de novo preserva os dados.
+
+**Opção B — copiar o banco do Docker.** Copia o banco `stockflow_demo` do seu Docker para o Neon, com as contas `emporio@stockflow.test` e `mercearia@stockflow.test` e os 90 dias de operações. Com o Docker e o container `stockflow_db` ligados, rode **um único comando** no PowerShell, trocando a URL pela do Neon:
 
 ```powershell
 docker exec -e NEON_URL="postgresql://usuario:senha@ep-xxxx.us-east-1.aws.neon.tech/neondb?sslmode=require" stockflow_db sh -c 'pg_dump -U postgres -Fc stockflow_demo | pg_restore --no-owner --no-privileges -d "$NEON_URL"'
