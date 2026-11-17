@@ -28,8 +28,9 @@ app.include_router(api_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.origens_cors,
+    # A autenticação usa o cabeçalho Authorization (não cookies), então credenciais não são necessárias.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

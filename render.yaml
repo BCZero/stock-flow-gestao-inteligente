@@ -1,0 +1,50 @@
+# Blueprint do Render: cria a API e o site do StockFlow a partir do branch "deploy".
+# Passo a passo completo em DEPLOY.md. O banco fica no Neon (não é criado aqui).
+#
+# Valores marcados com "sync: false" são pedidos pelo Render na criação e nunca ficam no Git.
+
+services:
+  # API FastAPI
+  - type: web
+    name: stockflow-api
+    runtime: python
+    plan: free
+    region: virginia            # mesma região do banco no Neon (AWS us-east-1) para respostas rápidas
+    branch: deploy
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Aplica as migrations no Neon e sobe a API na porta que o Render informar.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: AMBIENTE
+        value: producao
+      - key: SECRET_KEY
+        generateValue: true     # o Render gera uma chave aleatória de 256 bits
+      - key: DATABASE_URL
+        sync: false             # cole a URL de conexão do Neon
+      - key: CORS_ORIGENS
+        sync: false             # endereço do site, ex.: https://stockflow.onrender.com
+      - key: ALERTAS_INTERVALO_SEGUNDOS
+        value: "900"
+
+  # Frontend React/Vite (site estático)
+  - type: web
+    name: stockflow
+    runtime: static
+    branch: deploy
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: VITE_API_URL
+        sync: false             # endereço da API, ex.: https://stockflow-api.onrender.com
+    # O React Router controla as rotas no navegador: toda URL devolve o index.html.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

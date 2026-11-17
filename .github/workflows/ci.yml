@@ -1,11 +1,12 @@
 # Integração contínua do StockFlow.
-# Roda em todo pull request e em todo push na main. Se algum passo falhar, o check fica vermelho no GitHub.
+# Roda em todo pull request e em todo push na main e no deploy (branch publicado no Render).
+# Se algum passo falhar, o check fica vermelho no GitHub.
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, deploy]
 
 # O workflow só lê o código; não precisa de permissão de escrita no repositório.
 permissions:

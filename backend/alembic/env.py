@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.db.base_class import Base
 from app.db import models
+from app.db.conexao import preparar_conexao
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -80,11 +81,13 @@ def run_migrations_online() -> None:
         migrate(connection)
         return
 
+    url, connect_args = preparar_conexao(database_url())
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        url=database_url(),
+        url=url,
+        connect_args=connect_args,
     )
 
     with connectable.connect() as connection:

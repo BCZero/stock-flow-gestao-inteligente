@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Endereço da API definido no build (ex.: VITE_API_URL=https://stockflow-api.onrender.com).
+// Sem a variável, usa a API local do ambiente de desenvolvimento.
+const origemApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: origemApi + '/api',
 });
 
 api.interceptors.request.use((config) => {

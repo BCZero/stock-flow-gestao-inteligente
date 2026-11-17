@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
+from app.db.conexao import preparar_conexao
 
-engine = create_engine(settings.DATABASE_URL)
+_url, _connect_args = preparar_conexao(settings.DATABASE_URL)
+# pool_pre_ping descarta conexões que o provedor encerrou por inatividade (ex.: Neon em modo de espera).
+engine = create_engine(_url, connect_args=_connect_args, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
